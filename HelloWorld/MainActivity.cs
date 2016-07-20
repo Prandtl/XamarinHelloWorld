@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -10,16 +11,25 @@ namespace HelloWorld
 	[Activity(Label = "Phone Word", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
+
+		static readonly List<string> phoneNumbers = new List<string>();
+
 		protected override void OnCreate(Bundle bundle)
 		{
 			base.OnCreate(bundle);
-			
+
 			SetContentView(Resource.Layout.Main);
 
 			var phoneNumberText = FindViewById<EditText>(Resource.Id.PhoneNumberText);
 			var translateButton = FindViewById<Button>(Resource.Id.TranslateButton);
 			var callButton = FindViewById<Button>(Resource.Id.CallButton);
-
+			var callHistoryButton = FindViewById<Button>(Resource.Id.CallHistoryButton);
+			callHistoryButton.Click += (sender, args) =>
+			{
+				var intent = new Intent(this, typeof (CallHistoryActivity));
+				intent.PutStringArrayListExtra("phone_numbers", phoneNumbers);
+				StartActivity(intent);
+			};
 			callButton.Enabled = false;
 			var translatedNumber = String.Empty;
 
@@ -44,6 +54,8 @@ namespace HelloWorld
 				callDialog.SetMessage("Call " + translatedNumber + "?");
 				callDialog.SetNeutralButton("Call", delegate
 				{
+					phoneNumbers.Add(translatedNumber);
+					callHistoryButton.Enabled = true;
 					var callIntent = new Intent(Intent.ActionCall);
 					callIntent.SetData(Uri.Parse("tel:" + translatedNumber));
 					StartActivity(callIntent);
@@ -51,6 +63,7 @@ namespace HelloWorld
 				callDialog.SetNegativeButton("Cancel", delegate { });
 				callDialog.Show();
 			};
+
 		}
 	}
 }
